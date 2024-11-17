@@ -67,7 +67,7 @@ const App = () => {
       showToast("Invalid Word", "Try another combination.", "error");
     }
   };
-  
+
   const collapseGrid = (selectedCells) => {
     const newGrid = [...grid];
     selectedCells.forEach(([row, col]) => {
@@ -300,6 +300,13 @@ const validateWord = async (word, selectedCells) => {
     const response = await axios.get(
       `https://api.datamuse.com/words?sp=${word}&max=1`
     );
+
+    // Ensure response data is valid
+    if (!response.data || !Array.isArray(response.data)) {
+      console.error("Invalid API response:", response);
+      return false;
+    }
+
     const isValid = response.data.length > 0;
     cachedWords[word.toUpperCase()] = isValid;
     localStorage.setItem("cachedWords", JSON.stringify(cachedWords));
