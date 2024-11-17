@@ -1,23 +1,24 @@
-const fs = require("fs").promises;
+const { createClient } = require("@supabase/supabase-js");
 
-const LEADERBOARD_FILE = "/tmp/leaderboard.json";
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 exports.handler = async () => {
   try {
-    // Check if the file exists in /tmp
-    const fileExists = await fs.access(LEADERBOARD_FILE).then(() => true).catch(() => false);
+    const { data, error } = await supabase
+      .from("leaderboard")
+      .select("*")
+      .order("score", { ascending: false });
 
-    // Read the leaderboard data if it exists
-    const leaderboard = fileExists
-      ? JSON.parse(await fs.readFile(LEADERBOARD_FILE, "utf-8"))
-      : [];
+    if (error) throw error;
 
     return {
       statusCode: 200,
-      body: JSON.stringify(leaderboard),
+      body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Error reading leaderboard file:", error);
+    console.error("Error fetching leaderboard:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Failed to fetch leaderboard", details: error.message }),

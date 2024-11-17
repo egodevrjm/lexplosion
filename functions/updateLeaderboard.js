@@ -1,6 +1,8 @@
-const fs = require("fs").promises;
+const { createClient } = require("@supabase/supabase-js");
 
-const LEADERBOARD_FILE = "/tmp/leaderboard.json";
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -20,24 +22,15 @@ exports.handler = async (event) => {
       };
     }
 
-    // Check if the file exists
-    const fileExists = await fs.access(LEADERBOARD_FILE).then(() => true).catch(() => false);
+    const { data, error } = await supabase
+      .from("leaderboard")
+      .insert([{ name, score, seed }]);
 
-    // Read the existing leaderboard or initialize an empty one
-    const leaderboard = fileExists
-      ? JSON.parse(await fs.readFile(LEADERBOARD_FILE, "utf-8"))
-      : [];
-
-    // Add the new entry
-    leaderboard.push({ name, score, seed });
-    leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
-
-    // Write back the updated leaderboard
-    await fs.writeFile(LEADERBOARD_FILE, JSON.stringify(leaderboard, null, 2), "utf-8");
+    if (error) throw error;
 
     return {
       statusCode: 201,
-      body: JSON.stringify({ message: "Leaderboard updated successfully" }),
+      body: JSON.stringify({ message: "Leaderboard updated successfully", data }),
     };
   } catch (error) {
     console.error("Error updating leaderboard:", error);
