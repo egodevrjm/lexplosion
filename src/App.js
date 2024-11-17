@@ -287,29 +287,19 @@ const generateGameBoard = (rows, cols, seed) => {
 };
 
 const validateWord = async (word, selectedCells) => {
-  console.log("Selected Cells:", selectedCells); // Debugging output
-  console.log("Word:", word); // Debugging output
-
+  // Basic validation
   if (!Array.isArray(selectedCells) || selectedCells.length === 0) {
     console.warn("Invalid or empty cells array");
     return false;
   }
   if (word.length < 3) return false;
 
+  // Check if cells are contiguous
   const isContiguous = (cells) => {
-    if (!Array.isArray(cells) || cells.length === 0) {
-      console.warn("Invalid or empty cells array");
-      return false;
-    }
-  
     for (let i = 1; i < cells.length; i++) {
       const [prevRow, prevCol] = cells[i - 1];
       const [currRow, currCol] = cells[i];
-      if (
-        Math.abs(prevRow - currRow) > 1 || // Vertical adjacency check
-        Math.abs(prevCol - currCol) > 1    // Horizontal adjacency check
-      ) {
-        console.warn("Cells are not contiguous:", cells);
+      if (Math.abs(prevRow - currRow) > 1 || Math.abs(prevCol - currCol) > 1) {
         return false;
       }
     }
@@ -321,6 +311,7 @@ const validateWord = async (word, selectedCells) => {
     return false;
   }
 
+  // Check cache first
   const cachedWords = JSON.parse(localStorage.getItem("cachedWords")) || {};
   if (cachedWords[word.toUpperCase()] !== undefined) {
     return cachedWords[word.toUpperCase()];
@@ -328,24 +319,34 @@ const validateWord = async (word, selectedCells) => {
 
   try {
     const response = await axios.get(
-      `https://api.datamuse.com/words?sp=${word}&max=1`
+      `https://api.datamuse.com/words?sp=${word}&md=d&max=1`
     );
 
-    // Log the API response for debugging
-    console.log(`API response for "${word}":`, response.data);
+    console.log('Datamuse API full response for word:', word, response.data);
 
-    const isValid =
-      response.data &&
-      Array.isArray(response.data) &&
-      response.data.some(
-        (result) => result.word.toUpperCase() === word.toUpperCase()
+    // Check if we got an exact match for the word
+    const match = response.data.find(
+      result => result.word.toLowerCase() === word.toLowerCase()
     );
+
+    // Valid if:
+    // 1. We found a match
+    // 2. Match has definitions
+    const isValid = Boolean(match && match.defs && match.defs.length > 0);
 
     // Cache the result
     cachedWords[word.toUpperCase()] = isValid;
     localStorage.setItem("cachedWords", JSON.stringify(cachedWords));
 
+    console.log(`Word "${word}" validation:`, {
+      found: Boolean(match),
+      hasDefs: Boolean(match?.defs?.length),
+      isValid,
+      defs: match?.defs
+    });
+
     return isValid;
+
   } catch (error) {
     console.error("Error validating word:", error);
     return false;
