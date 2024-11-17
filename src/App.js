@@ -7,8 +7,13 @@ import TutorialModal from "./components/TutorialModal";
 import Leaderboard from "./components/Leaderboard";
 import axios from "axios";
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error("Missing Supabase environment variables.");
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
@@ -412,21 +417,16 @@ const saveHighScore = async (score, playerName, seed) => {
 
 const fetchLeaderboard = async () => {
   try {
-    const { data, error } = await supabase
-      .from("leaderboard")
-      .select()
-      .order("score", { ascending: false })
-      .limit(10); // Limit to top 10 scores
-
-    if (error) {
-      throw new Error(error.message);
+    const response = await fetch('/.netlify/functions/getLeaderboard');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
     }
-
+    const data = await response.json();
     console.log("Fetched leaderboard data:", data);
-    return data; // Return data to use in components
+    return data; // Return the leaderboard data
   } catch (error) {
-    console.error("Error fetching leaderboard from Supabase:", error);
-    // showToast("Error", "Failed to fetch leaderboard", "error");
+    console.error("Error fetching leaderboard from serverless function:", error);
+    return []; // Return an empty array if there's an error
   }
 };
 

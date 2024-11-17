@@ -1,27 +1,28 @@
-const { createClient } = require("@supabase/supabase-js");
+const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 exports.handler = async () => {
   try {
     const { data, error } = await supabase
-      .from("leaderboard")
-      .select("*")
-      .order("score", { ascending: false });
+      .from('leaderboard')
+      .select('*')
+      .order('score', { ascending: false })
+      .limit(10);
 
-    if (error) throw error;
+    if (error) {
+      throw new Error(error.message);
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Error fetching leaderboard:", error);
+    console.error('Error fetching leaderboard:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch leaderboard", details: error.message }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
