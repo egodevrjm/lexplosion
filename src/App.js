@@ -26,7 +26,7 @@ const App = () => {
   // eslint-disable-next-line no-unused-vars
   const [lastWord, setLastWord] = useState("");
   const [leaderboardData, setLeaderboardData] = useState([]); // To hold the global leaderboard data
-
+ 
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -58,16 +58,17 @@ const App = () => {
     fetchInitialLeaderboard();
   }, []); // Runs once when the component mounts
 
+  const showToast = (title, description, variant = "default") => {
+    setToastMessage({ title, description, variant });
+    setTimeout(() => setToastMessage(null), 2000); // Dismiss after 2 seconds
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const showToast = (title, description, variant = "default") => {
-    setToastMessage({ title, description, variant });
-    setTimeout(() => setToastMessage(null), 2000); // Dismiss after 2 seconds
-  };
 
   const handleEndGame = async () => {
     setGameOver(true); // End the game
