@@ -5,8 +5,9 @@ const LEADERBOARD_FILE = path.resolve(__dirname, "../leaderboard.json");
 
 exports.handler = async () => {
   try {
+    console.log("Reading leaderboard from:", LEADERBOARD_FILE);
     const data = await fs.readFile(LEADERBOARD_FILE, "utf-8");
-    console.log("Leaderboard data read successfully:", data); // Debugging
+    console.log("Leaderboard data read successfully:", data);
     return {
       statusCode: 200,
       body: data,
