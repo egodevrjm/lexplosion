@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Clock, Trophy, Share2, RefreshCw, Crown, AlertTriangle } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
 import GameGrid from "./components/GameGrid";
 import TutorialModal from "./components/TutorialModal";
 import Leaderboard from "./components/Leaderboard";
 import axios from "axios";
 
-// eslint-disable-next-line no-unused-vars
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -417,10 +414,10 @@ const fetchLeaderboard = async () => {
     }
     const data = await response.json();
     console.log("Fetched leaderboard data:", data);
-    return data; // Return the leaderboard data
+    return data;
   } catch (error) {
     console.error("Error fetching leaderboard from serverless function:", error);
-    return []; // Return an empty array if there's an error
+    return [];
   }
 };
 
