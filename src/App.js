@@ -8,9 +8,9 @@ import axios from "axios";
 
 
 const App = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const seedParam = searchParams.get("seed");
-  const seed = seedParam && !isNaN(seedParam) ? parseInt(seedParam, 10) : Date.now(); // Validate or generate a seed
+  const [seed, setSeed] = useState(seedParam && !isNaN(seedParam) ? parseInt(seedParam, 10) : Date.now());
 
   const [grid, setGrid] = useState(() => generateGameBoard(5, 5, parseInt(seed, 10)));
   const [score, setScore] = useState(0);
@@ -131,20 +131,26 @@ const App = () => {
 
   const startNewGame = () => {
     const newSeed = Date.now(); // Generate a new unique seed
+    setSeed(newSeed); // Update the seed state
     setGrid(generateGameBoard(5, 5, newSeed)); // Generate a new board
     setScore(0);
     setGameOver(false);
     setTimeLeft(120);
     setLastWord("");
-    // setComboCount(0);
     showToast("New Game Started", "Good luck!", "info");
   
     // Update the URL with the new seed
-    const params = new URLSearchParams(window.location.search);
-    params.set("seed", newSeed);
-    window.history.replaceState({}, "", `?${params.toString()}`);
+    setSearchParams({ seed: newSeed });
+
+  // Refresh leaderboard
+  refreshLeaderboard();
   };
 
+  const refreshLeaderboard = async () => {
+    const updatedLeaderboard = await fetchLeaderboard();
+    setLeaderboardData(updatedLeaderboard);
+    showToast("Leaderboard Refreshed", "Latest scores loaded.", "info");
+  };
 
   const shareResults = async () => {
     const url = `${window.location.origin}?seed=${seed}`;
@@ -202,7 +208,7 @@ const App = () => {
   grid={grid}
   onWordSubmit={(word, selectedCells) => handleWordSubmission(word, selectedCells)}
 />
-          <div className="text-sm text-gray-600 text-center mt-4">
+<div className="text-sm text-gray-600 text-center mt-4">
   Playing board: <span className="font-bold text-purple-600">{seed}</span>
 </div>
         </div>
@@ -241,12 +247,15 @@ const App = () => {
                   <span className="font-bold text-purple-600">{score}</span>
                 </p>
                 <div className="space-y-4">
-                  <button
-                    className="w-full px-6 py-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors"
-                    onClick={startNewGame}
-                  >
-                    Play Again
-                  </button>
+                <button
+  className="w-full px-6 py-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors"
+  onClick={() => {
+    startNewGame();
+    refreshLeaderboard(); // Refresh the leaderboard
+  }}
+>
+  Play Again
+</button>
                   <button
                     className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
                     onClick={shareResults}
@@ -270,6 +279,22 @@ const App = () => {
         )}
 
         <div className="mt-8">
+        <div className="mt-8">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-2xl font-bold">Leaderboard</h2>
+    <button
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+      onClick={refreshLeaderboard}
+    >
+      Refresh
+    </button>
+  </div>
+  <Leaderboard
+    playerName={playerName}
+    setPlayerName={setPlayerName}
+    leaderboardData={leaderboardData} // Pass leaderboard data as a prop
+  />
+</div>
         <Leaderboard
           playerName={playerName}
           setPlayerName={setPlayerName}
