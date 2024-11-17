@@ -14,7 +14,7 @@ const App = () => {
   const [grid, setGrid] = useState(() => generateGameBoard(5, 5, parseInt(seed, 10)));
   const [score, setScore] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
-  const [playerName] = useState(localStorage.getItem("playerName") || "");
+  const [playerName, setPlayerName] = useState(localStorage.getItem("playerName") || "");
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
   const [toastMessage, setToastMessage] = useState(null);
@@ -241,7 +241,7 @@ const App = () => {
         )}
 
         <div className="mt-8">
-          <Leaderboard playerName={playerName} />
+        <Leaderboard playerName={playerName} setPlayerName={setPlayerName} />
         </div>
       </div>
 

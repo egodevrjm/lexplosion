@@ -1,30 +1,33 @@
 import React, { useState } from "react";
 
-const Leaderboard = ({ playerName }) => {
+const Leaderboard = ({ playerName, setPlayerName }) => {
   const [nameInput, setNameInput] = useState(playerName || "");
   const highScores = JSON.parse(localStorage.getItem("highScores")) || [];
   const validHighScores = highScores.filter(
     (entry) => entry.name && entry.score !== undefined && entry.seed
   );
-    
+
   const handleNameSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("playerName", nameInput);
-    setNameInput(nameInput); // Dynamically update the name
+    localStorage.setItem("playerName", nameInput); // Save to localStorage
+    setPlayerName(nameInput); // Update parent state dynamically
   };
 
   const getMedalEmoji = (position) => {
     switch (position) {
-      case 0: return "🥇";
-      case 1: return "🥈";
-      case 2: return "🥉";
-      default: return "🏅";
+      case 0:
+        return "🥇";
+      case 1:
+        return "🥈";
+      case 2:
+        return "🥉";
+      default:
+        return "🏅";
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    // Check if the date is valid
     return isNaN(date.getTime()) ? "Unknown Date" : date.toLocaleDateString();
   };
 
@@ -32,9 +35,7 @@ const Leaderboard = ({ playerName }) => {
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-purple-600">🏆 Leaderboard</h2>
-        <div className="text-sm text-gray-500">
-          Today's Top Scores
-        </div>
+        <div className="text-sm text-gray-500">Today's Top Scores</div>
       </div>
 
       {!playerName && (
@@ -66,7 +67,7 @@ const Leaderboard = ({ playerName }) => {
         </div>
       ) : (
         <div className="space-y-2">
-    {validHighScores.map((entry, index) => (
+          {validHighScores.map((entry, index) => (
             <div
               key={index}
               className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
@@ -86,15 +87,11 @@ const Leaderboard = ({ playerName }) => {
                       </span>
                     )}
                   </span>
-                  <div className="text-sm text-gray-500">
-                    {formatDate(entry.seed)}
-                  </div>
+                  <div className="text-sm text-gray-500">{formatDate(entry.seed)}</div>
                 </div>
               </div>
               <div className="flex items-center">
-                <span className="text-xl font-bold text-purple-600">
-                  {entry.score}
-                </span>
+                <span className="text-xl font-bold text-purple-600">{entry.score}</span>
                 <span className="text-sm text-gray-500 ml-1">pts</span>
               </div>
             </div>
@@ -107,14 +104,15 @@ const Leaderboard = ({ playerName }) => {
           <div className="flex justify-between items-center text-sm text-gray-600">
             <span>Playing as: {playerName}</span>
             <button
-                onClick={() => {
-                    localStorage.removeItem("playerName");
-                    setNameInput(""); // Reset the name dynamically
-                }}
-                className="text-purple-600 hover:text-purple-700 underline"
-                >
-                Change Name
-                </button>
+              onClick={() => {
+                localStorage.removeItem("playerName");
+                setPlayerName(""); // Clear name in parent state
+                setNameInput(""); // Reset local input
+              }}
+              className="text-purple-600 hover:text-purple-700 underline"
+            >
+              Change Name
+            </button>
           </div>
         </div>
       )}
