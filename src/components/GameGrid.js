@@ -43,7 +43,6 @@ const GameGrid = ({ grid, onWordSubmit }) => {
     }
     
     if (selectedCells.some(([r, c]) => r === row && c === col)) {
-      const index = selectedCells.findIndex(([r, c]) => r === row && c === col);
       return `${baseClasses} bg-gradient-to-br from-purple-500 to-blue-500 text-white scale-105 shadow-lg ring-2 ring-purple-300 ring-offset-2`;
     }
     

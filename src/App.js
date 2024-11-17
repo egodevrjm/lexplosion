@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Clock, Trophy, Share2, RefreshCw, Crown, AlertTriangle } from "lucide-react";
 import GameGrid from "./components/GameGrid";
-import ScoreTracker from "./components/ScoreTracker";
 import TutorialModal from "./components/TutorialModal";
 import Leaderboard from "./components/Leaderboard";
 import axios from "axios";
@@ -15,11 +14,9 @@ const App = () => {
   const [grid, setGrid] = useState(() => generateGameBoard(5, 5, parseInt(seed, 10)));
   const [score, setScore] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
-  const [playerName, setPlayerName] = useState(localStorage.getItem("playerName") || "");
+  const [playerName] = useState(localStorage.getItem("playerName") || "");
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
-  const [lastWord, setLastWord] = useState("");
-  const [comboCount, setComboCount] = useState(0);
   const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
@@ -229,14 +226,14 @@ const App = () => {
   );
 };
 
-const generateDailyGrid = (rows, cols, seed) => {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const random = () => Math.floor(Math.random() * alphabet.length);
+// const generateDailyGrid = (rows, cols, seed) => {
+//   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+//   const random = () => Math.floor(Math.random() * alphabet.length);
 
-  return Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => alphabet[random()])
-  );
-};
+//   return Array.from({ length: rows }, () =>
+//     Array.from({ length: cols }, () => alphabet[random()])
+//   );
+// };
 
 const generateGameBoard = (rows, cols, seed) => {
   const random = (seed) => {
