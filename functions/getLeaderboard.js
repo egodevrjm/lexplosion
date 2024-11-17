@@ -1,7 +1,8 @@
 const fs = require("fs").promises;
 const path = require("path");
 
-const LEADERBOARD_FILE = path.resolve(__dirname, "../leaderboard.json");
+// Use __dirname for resolving paths in Netlify Functions
+const LEADERBOARD_FILE = path.join(__dirname, "leaderboard.json");
 
 exports.handler = async () => {
   try {
