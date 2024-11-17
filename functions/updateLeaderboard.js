@@ -1,5 +1,4 @@
 const fs = require("fs").promises;
-const path = require("path");
 
 const LEADERBOARD_FILE = "/tmp/leaderboard.json";
 
@@ -33,7 +32,7 @@ exports.handler = async (event) => {
     leaderboard.push({ name, score, seed });
     leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
 
-    // Write back the updated leaderboard to /tmp
+    // Write back the updated leaderboard
     await fs.writeFile(LEADERBOARD_FILE, JSON.stringify(leaderboard, null, 2), "utf-8");
 
     return {
