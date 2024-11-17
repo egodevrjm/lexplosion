@@ -392,18 +392,21 @@ const validateWord = async (word, selectedCells) => {
 
 const saveHighScore = async (score, playerName, seed) => {
   try {
-    const { data, error } = await supabase
-      .from("leaderboard")
-      .insert([{ name: playerName || "Anonymous", score, seed }]);
+    const response = await fetch('/.netlify/functions/saveHighScore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, playerName, seed }),
+    });
 
-    if (error) {
-      throw new Error(error.message);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message);
     }
 
-    console.log("High score saved to Supabase:", data);
+    console.log('Score saved successfully:', result);
   } catch (error) {
-    console.error("Error saving high score to Supabase:", error);
-    // showToast("Error", "Failed to save high score", "error");
+    console.error('Error saving score:', error);
   }
 };
 
