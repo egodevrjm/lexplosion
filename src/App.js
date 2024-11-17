@@ -100,6 +100,7 @@ const App = () => {
     window.history.replaceState({}, "", `?${params.toString()}`);
   };
 
+  
   const shareResults = async () => {
     const url = `${window.location.origin}?seed=${seed}`;
     const message = `🎮 Word Collapse\n📊 Score: ${score}\n⏱️ Time: ${formatTime(
@@ -107,19 +108,28 @@ const App = () => {
     )}\n\nPlay my board: ${url}`;
   
     try {
+      // Use Web Share API if available
       if (navigator.share) {
         await navigator.share({
           title: "Word Collapse",
           text: message,
           url: url,
         });
+        showToast("Shared Successfully!", "Your results were shared.", "success");
       } else {
+        // Clipboard fallback for unsupported browsers
         await navigator.clipboard.writeText(message);
         showToast("Link Copied!", "Share it with your friends!", "info");
       }
     } catch (error) {
-      console.error("Error sharing:", error);
-      showToast("Error Sharing", "Could not share the link.", "error");
+      // Handle user cancellation or other errors
+      if (error.name === "AbortError") {
+        console.warn("Share action was canceled by the user.");
+        showToast("Share Canceled", "You canceled the share.", "error");
+      } else {
+        console.error("Error sharing:", error);
+        showToast("Error Sharing", "Could not share the link.", "error");
+      }
     }
   };
 
