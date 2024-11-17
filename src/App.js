@@ -18,7 +18,8 @@ const App = () => {
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
   const [toastMessage, setToastMessage] = useState(null);
-  const [setLastWord] = useState("");
+  const [lastWord, setLastWord] = useState("");
+
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -52,13 +53,13 @@ const App = () => {
       setLastWord(word); // Store the last valid word
       const basePoints = word.length;
       let bonusPoints = 0;
-
+  
       if (word.length >= 5) bonusPoints += (word.length - 4) * 2;
-
+  
       const totalPoints = basePoints + bonusPoints;
       setScore((prev) => prev + totalPoints);
       showToast("Word Accepted!", `+${totalPoints} points!`, "success");
-
+  
       collapseGrid(selectedCells);
     } else {
       showToast("Invalid Word", "Try another combination.", "error");
@@ -74,7 +75,7 @@ const App = () => {
       newGrid[0][col] = "";
     });
     setGrid(newGrid);
-
+  
     if (newGrid.flat().every((cell) => cell === "")) {
       setGameOver(true);
       showToast("Perfect Clear!", "Bonus points awarded for clearing the grid!", "success");
@@ -250,32 +251,23 @@ const generateGameBoard = (rows, cols, seed) => {
 };
 
 const validateWord = async (word) => {
-  if (word.length < 3) return false; // Reject words shorter than 3 characters
+  if (word.length < 3) return false;
 
-  // Retrieve cached words from localStorage
   const cachedWords = JSON.parse(localStorage.getItem("cachedWords")) || {};
   if (cachedWords[word.toUpperCase()] !== undefined) {
-    return cachedWords[word.toUpperCase()]; // Return cached result
+    return cachedWords[word.toUpperCase()];
   }
 
   try {
-    // Query Datamuse API
     const response = await axios.get(
-      `https://api.datamuse.com/words?sp=${word}&max=1` // Remove metadata for simplicity
+      `https://api.datamuse.com/words?sp=${word}&max=1`
     );
-
-    // Check if the API returned results
     const isValid = response.data.length > 0;
-
-    // Cache the result for future use
     cachedWords[word.toUpperCase()] = isValid;
     localStorage.setItem("cachedWords", JSON.stringify(cachedWords));
-
     return isValid;
   } catch (error) {
     console.error("Error validating word:", error);
-
-    // Default to false if the API fails
     return false;
   }
 };
