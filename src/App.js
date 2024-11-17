@@ -18,6 +18,7 @@ const App = () => {
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
   const [toastMessage, setToastMessage] = useState(null);
+  const [setLastWord] = useState("");
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -48,6 +49,7 @@ const App = () => {
 
   const handleWordSubmission = async (word, selectedCells) => {
     if (await validateWord(word)) {
+      setLastWord(word); // Store the last valid word
       const basePoints = word.length;
       let bonusPoints = 0;
 
@@ -55,8 +57,6 @@ const App = () => {
 
       const totalPoints = basePoints + bonusPoints;
       setScore((prev) => prev + totalPoints);
-      setLastWord(word);
-
       showToast("Word Accepted!", `+${totalPoints} points!`, "success");
 
       collapseGrid(selectedCells);
@@ -89,7 +89,7 @@ const App = () => {
     setGameOver(false);
     setTimeLeft(120);
     setLastWord("");
-    setComboCount(0);
+    // setComboCount(0);
     showToast("New Game Started", "Good luck!", "info");
   
     // Update the URL with the new seed
