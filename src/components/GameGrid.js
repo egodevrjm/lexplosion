@@ -4,6 +4,7 @@ import { Send, X } from 'lucide-react';
 const GameGrid = ({ grid, onWordSubmit }) => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [currentWord, setCurrentWord] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [collapsingCells, setCollapsingCells] = useState([]);
 
   const handleCellClick = (row, col, letter) => {
