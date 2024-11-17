@@ -353,12 +353,16 @@ const validateWord = async (word, selectedCells) => {
   }
 };
 
-const saveHighScore = (score, playerName, seed) => {
-  const highScores = JSON.parse(localStorage.getItem("highScores")) || [];
-  const newEntry = { name: playerName || "Anonymous", score, seed };
-  highScores.push(newEntry);
-  highScores.sort((a, b) => b.score - a.score);
-  localStorage.setItem("highScores", JSON.stringify(highScores.slice(0, 5)));
+const saveHighScore = async (score, playerName, seed) => {
+  try {
+    await fetch("/.netlify/functions/updateLeaderboard", {
+      method: "POST",
+      body: JSON.stringify({ name: playerName || "Anonymous", score, seed }),
+    });
+    console.log("High score saved to global leaderboard");
+  } catch (error) {
+    console.error("Error saving high score:", error);
+  }
 };
 
 export default App;

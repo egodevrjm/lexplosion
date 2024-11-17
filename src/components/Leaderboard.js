@@ -1,11 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const Leaderboard = ({ playerName, setPlayerName }) => {
   const [nameInput, setNameInput] = useState(playerName || "");
-  const highScores = JSON.parse(localStorage.getItem("highScores")) || [];
-  const validHighScores = highScores.filter(
-    (entry) => entry.name && entry.score !== undefined && entry.seed
-  );
+  const [leaderboard, setLeaderboard] = useState([]); // State for fetched leaderboard
+  const [loading, setLoading] = useState(true); // For loading state
+
+  // Fetch leaderboard data from the server or API
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch("/.netlify/functions/getLeaderboard");
+      const data = await response.json();
+      setLeaderboard(data); // Use fetched data
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+    } finally {
+      setLoading(false); // Ensure loading ends
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
 
   const handleNameSubmit = (e) => {
     e.preventDefault();
@@ -60,14 +75,18 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
         </div>
       )}
 
-      {highScores.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 text-lg">Loading leaderboard...</p>
+        </div>
+      ) : leaderboard.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <p className="text-gray-500 text-lg">No high scores yet!</p>
           <p className="text-gray-400 mt-2">Be the first to make the leaderboard!</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {validHighScores.map((entry, index) => (
+          {leaderboard.map((entry, index) => (
             <div
               key={index}
               className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
@@ -96,24 +115,6 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {playerName && (
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <span>Playing as: {playerName}</span>
-            <button
-              onClick={() => {
-                localStorage.removeItem("playerName");
-                setPlayerName(""); // Clear name in parent state
-                setNameInput(""); // Reset local input
-              }}
-              className="text-purple-600 hover:text-purple-700 underline"
-            >
-              Change Name
-            </button>
-          </div>
         </div>
       )}
     </div>
