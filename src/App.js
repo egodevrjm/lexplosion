@@ -35,6 +35,7 @@ const App = () => {
   useEffect(() => {
     if (gameOver) {
       saveHighScore(score, playerName, seed);
+      showToast("Game Over", "Your score has been saved.", "info");
     }
   }, [gameOver, score, playerName, seed]);
 
@@ -66,7 +67,7 @@ const App = () => {
       showToast("Invalid Word", "Try another combination.", "error");
     }
   };
-
+  
   const collapseGrid = (selectedCells) => {
     const newGrid = [...grid];
     selectedCells.forEach(([row, col]) => {
@@ -77,10 +78,11 @@ const App = () => {
     });
     setGrid(newGrid);
   
-    if (newGrid.flat().every((cell) => cell === "")) {
+    const remainingLetters = newGrid.flat().filter((cell) => cell !== "").length;
+  
+    if (remainingLetters <= 2) {
       setGameOver(true);
-      showToast("Perfect Clear!", "Bonus points awarded for clearing the grid!", "success");
-      setScore((prev) => prev + 50); // Bonus for clearing the grid
+      showToast("Game Over", "Only 1-2 letters remain.", "info");
     }
   };
 
@@ -100,7 +102,7 @@ const App = () => {
     window.history.replaceState({}, "", `?${params.toString()}`);
   };
 
-  
+
   const shareResults = async () => {
     const url = `${window.location.origin}?seed=${seed}`;
     const message = `🎮 Word Collapse\n📊 Score: ${score}\n⏱️ Time: ${formatTime(
@@ -173,6 +175,12 @@ const App = () => {
           >
             <Share2 className="w-5 h-5 mr-2" />
             Share Score
+          </button>
+          <button
+            className="flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
+            onClick={() => setGameOver(true)}
+          >
+            End Game
           </button>
         </div>
 
@@ -261,8 +269,27 @@ const generateGameBoard = (rows, cols, seed) => {
   );
 };
 
-const validateWord = async (word) => {
+const validateWord = async (word, selectedCells) => {
   if (word.length < 3) return false;
+
+  // Check if selected cells are contiguous
+  const isContiguous = (cells) => {
+    for (let i = 1; i < cells.length; i++) {
+      const [prevRow, prevCol] = cells[i - 1];
+      const [currRow, currCol] = cells[i];
+      if (
+        Math.abs(prevRow - currRow) > 1 ||
+        Math.abs(prevCol - currCol) > 1
+      ) {
+        return false; // Non-contiguous selection
+      }
+    }
+    return true;
+  };
+
+  if (!isContiguous(selectedCells)) {
+    return false;
+  }
 
   const cachedWords = JSON.parse(localStorage.getItem("cachedWords")) || {};
   if (cachedWords[word.toUpperCase()] !== undefined) {
