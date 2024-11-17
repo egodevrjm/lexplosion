@@ -24,18 +24,22 @@ const App = () => {
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      setGameOver(true);
+      setGameOver(true); // End the game when the timer hits zero
     }
     if (timeLeft > 0 && !gameOver) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000); // Decrement time every second
+      return () => clearTimeout(timer); // Cleanup timeout if component re-renders or unmounts
     }
   }, [timeLeft, gameOver]);
 
   useEffect(() => {
     if (gameOver) {
-      saveHighScore(score, playerName, seed);
-      showToast("Game Over", "Your score has been saved.", "info");
+      const timer = setTimeout(() => {
+        saveHighScore(score, playerName, seed); // Save high score
+        showToast("Game Over", "Your score has been saved.", "info"); // Display game-over message
+      }, 1000); // Delay by 1 second
+  
+      return () => clearTimeout(timer); // Cleanup the timeout if `gameOver` changes or the component unmounts
     }
   }, [gameOver, score, playerName, seed]);
 
@@ -51,20 +55,30 @@ const App = () => {
   };
 
   const handleWordSubmission = async (word, selectedCells) => {
-    if (await validateWord(word)) {
-      setLastWord(word); // Store the last valid word
-      const basePoints = word.length;
-      let bonusPoints = 0;
+    console.log("Selected Cells:", selectedCells); // Debugging
+    console.log("Word:", word); // Debugging
   
-      if (word.length >= 5) bonusPoints += (word.length - 4) * 2;
+    if (!Array.isArray(selectedCells) || selectedCells.length === 0) {
+      console.warn("Invalid or empty cells array");
+      return;
+    }
   
-      const totalPoints = basePoints + bonusPoints;
-      setScore((prev) => prev + totalPoints);
-      showToast("Word Accepted!", `+${totalPoints} points!`, "success");
+    const isValid = await validateWord(word, selectedCells);
+    if (isValid) {
+      console.log(`"${word}" is valid!`);
+      
+      // Award points based on word length
+      const points = word.length;
+      setScore((prevScore) => prevScore + points);
   
+      // Collapse the grid
       collapseGrid(selectedCells);
+  
+      // Provide feedback to the user
+      showToast("Word Accepted!", `You earned ${points} points!`, "success");
     } else {
-      showToast("Invalid Word", "Try another combination.", "error");
+      console.warn(`"${word}" is invalid`);
+      alert("Invalid word! Try again.");
     }
   };
 
@@ -155,7 +169,10 @@ const App = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <GameGrid grid={grid} onWordSubmit={handleWordSubmission} />
+        <GameGrid
+  grid={grid}
+  onWordSubmit={(word, selectedCells) => handleWordSubmission(word, selectedCells)}
+/>
           <div className="text-sm text-gray-600 text-center mt-4">
   Playing board: <span className="font-bold text-purple-600">{seed}</span>
 </div>
@@ -270,24 +287,37 @@ const generateGameBoard = (rows, cols, seed) => {
 };
 
 const validateWord = async (word, selectedCells) => {
+  console.log("Selected Cells:", selectedCells); // Debugging output
+  console.log("Word:", word); // Debugging output
+
+  if (!Array.isArray(selectedCells) || selectedCells.length === 0) {
+    console.warn("Invalid or empty cells array");
+    return false;
+  }
   if (word.length < 3) return false;
 
-  // Check if selected cells are contiguous
   const isContiguous = (cells) => {
+    if (!Array.isArray(cells) || cells.length === 0) {
+      console.warn("Invalid or empty cells array");
+      return false;
+    }
+  
     for (let i = 1; i < cells.length; i++) {
       const [prevRow, prevCol] = cells[i - 1];
       const [currRow, currCol] = cells[i];
       if (
-        Math.abs(prevRow - currRow) > 1 ||
-        Math.abs(prevCol - currCol) > 1
+        Math.abs(prevRow - currRow) > 1 || // Vertical adjacency check
+        Math.abs(prevCol - currCol) > 1    // Horizontal adjacency check
       ) {
-        return false; // Non-contiguous selection
+        console.warn("Cells are not contiguous:", cells);
+        return false;
       }
     }
     return true;
   };
 
   if (!isContiguous(selectedCells)) {
+    console.warn("Non-contiguous cells selected");
     return false;
   }
 
@@ -301,15 +331,20 @@ const validateWord = async (word, selectedCells) => {
       `https://api.datamuse.com/words?sp=${word}&max=1`
     );
 
-    // Ensure response data is valid
-    if (!response.data || !Array.isArray(response.data)) {
-      console.error("Invalid API response:", response);
-      return false;
-    }
+    // Log the API response for debugging
+    console.log(`API response for "${word}":`, response.data);
 
-    const isValid = response.data.length > 0;
+    const isValid =
+      response.data &&
+      Array.isArray(response.data) &&
+      response.data.some(
+        (result) => result.word.toUpperCase() === word.toUpperCase()
+    );
+
+    // Cache the result
     cachedWords[word.toUpperCase()] = isValid;
     localStorage.setItem("cachedWords", JSON.stringify(cachedWords));
+
     return isValid;
   } catch (error) {
     console.error("Error validating word:", error);

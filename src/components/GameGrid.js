@@ -21,13 +21,24 @@ const GameGrid = ({ grid, onWordSubmit }) => {
   };
 
   const handleSubmit = () => {
+    if (!currentWord || currentWord.length < 3) {
+      alert("Please select a valid word (3+ letters).");
+      return;
+    }
+  
+    if (!selectedCells || selectedCells.length === 0) {
+      alert("Please select letters to form a word!");
+      return;
+    }
+  
+    console.log("Submitting Word:", currentWord); // Debugging
+    console.log("Selected Cells:", selectedCells); // Debugging
+  
+    // Pass both word and selected cells to parent
     onWordSubmit(currentWord, selectedCells);
-    setCollapsingCells(selectedCells);
-    setTimeout(() => {
-      setSelectedCells([]);
-      setCurrentWord("");
-      setCollapsingCells([]);
-    }, 500);
+  
+    setSelectedCells([]);
+    setCurrentWord("");
   };
 
   const resetSelection = () => {
