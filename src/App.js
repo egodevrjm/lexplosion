@@ -18,6 +18,7 @@ const App = () => {
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
   const [toastMessage, setToastMessage] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [lastWord, setLastWord] = useState("");
 
 
