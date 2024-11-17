@@ -7,13 +7,7 @@ import TutorialModal from "./components/TutorialModal";
 import Leaderboard from "./components/Leaderboard";
 import axios from "axios";
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing Supabase environment variables.");
-}
-
+// eslint-disable-next-line no-unused-vars
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
