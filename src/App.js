@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Clock, Trophy, Share2, RefreshCw, Crown, AlertTriangle } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
 import GameGrid from "./components/GameGrid";
 import TutorialModal from "./components/TutorialModal";
 import Leaderboard from "./components/Leaderboard";
 import axios from "axios";
+
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +25,7 @@ const App = () => {
   const [toastMessage, setToastMessage] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [lastWord, setLastWord] = useState("");
+  const [leaderboardData, setLeaderboardData] = useState([]); // To hold the global leaderboard data
 
 
   useEffect(() => {
@@ -43,6 +49,15 @@ const App = () => {
     }
   }, [gameOver, score, playerName, seed]);
 
+  useEffect(() => {
+    const fetchInitialLeaderboard = async () => {
+      const data = await fetchLeaderboard(); // Fetch leaderboard from Supabase
+      setLeaderboardData(data); // Save it to state
+    };
+  
+    fetchInitialLeaderboard();
+  }, []); // Runs once when the component mounts
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -52,6 +67,20 @@ const App = () => {
   const showToast = (title, description, variant = "default") => {
     setToastMessage({ title, description, variant });
     setTimeout(() => setToastMessage(null), 2000); // Dismiss after 2 seconds
+  };
+
+  const handleEndGame = async () => {
+    setGameOver(true); // End the game
+    saveHighScore(score, playerName, seed); // Save the high score
+  
+    // Fetch updated leaderboard data
+    const updatedLeaderboard = await fetchLeaderboard();
+    
+    // Pass the new leaderboard data to the Leaderboard component
+    setLeaderboardData(updatedLeaderboard);
+  
+    // Provide feedback to the user
+    showToast("Game Over", "Your score has been saved and leaderboard updated.", "info");
   };
 
   const handleWordSubmission = async (word, selectedCells) => {
@@ -194,11 +223,11 @@ const App = () => {
             Share Score
           </button>
           <button
-            className="flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
-            onClick={() => setGameOver(true)}
-          >
-            End Game
-          </button>
+  className="flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
+  onClick={handleEndGame} // Call the new function
+>
+  End Game
+</button>
         </div>
 
         {gameOver && (
@@ -241,7 +270,11 @@ const App = () => {
         )}
 
         <div className="mt-8">
-        <Leaderboard playerName={playerName} setPlayerName={setPlayerName} />
+        <Leaderboard
+          playerName={playerName}
+          setPlayerName={setPlayerName}
+          leaderboardData={leaderboardData} // Pass leaderboard data as a prop
+        />
         </div>
       </div>
 
@@ -355,13 +388,38 @@ const validateWord = async (word, selectedCells) => {
 
 const saveHighScore = async (score, playerName, seed) => {
   try {
-    await fetch("/.netlify/functions/updateLeaderboard", {
-      method: "POST",
-      body: JSON.stringify({ name: playerName || "Anonymous", score, seed }),
-    });
-    console.log("High score saved to global leaderboard");
+    const { data, error } = await supabase
+      .from("leaderboard")
+      .insert([{ name: playerName || "Anonymous", score, seed }]);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log("High score saved to Supabase:", data);
   } catch (error) {
-    console.error("Error saving high score:", error);
+    console.error("Error saving high score to Supabase:", error);
+    showToast("Error", "Failed to save high score", "error");
+  }
+};
+
+const fetchLeaderboard = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("leaderboard")
+      .select()
+      .order("score", { ascending: false })
+      .limit(10); // Limit to top 10 scores
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log("Fetched leaderboard data:", data);
+    return data; // Return data to use in components
+  } catch (error) {
+    console.error("Error fetching leaderboard from Supabase:", error);
+    showToast("Error", "Failed to fetch leaderboard", "error");
   }
 };
 

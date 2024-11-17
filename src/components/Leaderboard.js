@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-const Leaderboard = ({ playerName, setPlayerName }) => {
+const Leaderboard = ({ playerName, setPlayerName, leaderboardData }) => {
   const [nameInput, setNameInput] = useState(playerName || "");
-  const [leaderboard, setLeaderboard] = useState([]); // State for fetched leaderboard
-  const [loading, setLoading] = useState(true); // For loading state
+  const [leaderboard, setLeaderboard] = useState([]); // State for leaderboard data
+  const [loading, setLoading] = useState(true); // Loading state
 
-  // Fetch leaderboard data from the server or API
+  // Fetch leaderboard data from Supabase
   const fetchLeaderboard = async () => {
     try {
       const response = await fetch("/.netlify/functions/getLeaderboard");
@@ -16,7 +16,7 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
       if (!Array.isArray(data)) {
         throw new Error("Invalid leaderboard data format");
       }
-      setLeaderboard(data); // Use fetched data
+      setLeaderboard(data); // Save fetched leaderboard data
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
       setLeaderboard([]); // Fallback to an empty leaderboard
@@ -25,16 +25,19 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
     }
   };
 
+  // Fetch leaderboard when the component mounts or leaderboardData changes
   useEffect(() => {
     fetchLeaderboard();
-  }, []);
+  }, [leaderboardData]);
 
+  // Handle saving or changing player name
   const handleNameSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("playerName", nameInput); // Save to localStorage
-    setPlayerName(nameInput); // Update parent state dynamically
+    localStorage.setItem("playerName", nameInput); // Save name locally
+    setPlayerName(nameInput); // Update parent state
   };
 
+  // Get medal emoji based on rank
   const getMedalEmoji = (position) => {
     switch (position) {
       case 0:
@@ -48,6 +51,7 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
     }
   };
 
+  // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? "Unknown Date" : date.toLocaleDateString();
@@ -60,6 +64,7 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
         <div className="text-sm text-gray-500">Today's Top Scores</div>
       </div>
 
+      {/* Display name input if no name is set */}
       {!playerName && (
         <div className="mb-6 bg-purple-50 rounded-lg p-4">
           <form onSubmit={handleNameSubmit} className="flex gap-2">
@@ -82,6 +87,7 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
         </div>
       )}
 
+      {/* Display loading state */}
       {loading ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <p className="text-gray-500 text-lg">Loading leaderboard...</p>
@@ -92,6 +98,7 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
           <p className="text-gray-400 mt-2">Be the first to make the leaderboard!</p>
         </div>
       ) : (
+        // Display leaderboard entries
         <div className="space-y-2">
           {leaderboard.map((entry, index) => (
             <div
