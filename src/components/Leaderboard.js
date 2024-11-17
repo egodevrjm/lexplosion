@@ -9,10 +9,17 @@ const Leaderboard = ({ playerName, setPlayerName }) => {
   const fetchLeaderboard = async () => {
     try {
       const response = await fetch("/.netlify/functions/getLeaderboard");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid leaderboard data format");
+      }
       setLeaderboard(data); // Use fetched data
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
+      setLeaderboard([]); // Fallback to an empty leaderboard
     } finally {
       setLoading(false); // Ensure loading ends
     }

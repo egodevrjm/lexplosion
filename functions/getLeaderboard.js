@@ -6,6 +6,7 @@ const LEADERBOARD_FILE = path.resolve(__dirname, "../leaderboard.json");
 exports.handler = async () => {
   try {
     const data = await fs.readFile(LEADERBOARD_FILE, "utf-8");
+    console.log("Leaderboard data read successfully:", data); // Debugging
     return {
       statusCode: 200,
       body: data,
