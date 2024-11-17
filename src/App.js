@@ -403,7 +403,7 @@ const saveHighScore = async (score, playerName, seed) => {
     console.log("High score saved to Supabase:", data);
   } catch (error) {
     console.error("Error saving high score to Supabase:", error);
-    showToast("Error", "Failed to save high score", "error");
+    // showToast("Error", "Failed to save high score", "error");
   }
 };
 
@@ -423,7 +423,7 @@ const fetchLeaderboard = async () => {
     return data; // Return data to use in components
   } catch (error) {
     console.error("Error fetching leaderboard from Supabase:", error);
-    showToast("Error", "Failed to fetch leaderboard", "error");
+    // showToast("Error", "Failed to fetch leaderboard", "error");
   }
 };
 
