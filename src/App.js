@@ -295,11 +295,6 @@ const App = () => {
     leaderboardData={leaderboardData} // Pass leaderboard data as a prop
   />
 </div>
-        <Leaderboard
-          playerName={playerName}
-          setPlayerName={setPlayerName}
-          leaderboardData={leaderboardData} // Pass leaderboard data as a prop
-        />
         </div>
       </div>
 
